@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 @require_POST
 def bulk_order_view(request):
     try:
-        # 解析JSON数据
         data = json.loads(request.body)
         if not data or 'items' not in data:
             raise BusinessException("Invalid order format: missing 'items' field")
