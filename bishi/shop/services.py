@@ -30,11 +30,11 @@ class OrderService:
             lock_key = f"product_lock:{product_id}"
 
             try:
-                # 获取分布式锁（防止集群环境下的并发问题）
+                # 获取分布式锁
                 if not acquire_lock(lock_key):
                     raise DatabaseError("Failed to acquire lock for product")
 
-                # 检查缓存中的库存（快速失败）
+                # 检查缓存中的库存
                 cached_product = get_cached_product(product_id)
                 if cached_product and cached_product['stock'] < quantity:
                     raise InsufficientStockException(
@@ -122,7 +122,7 @@ class OrderService:
 class ProductService:
     @staticmethod
     def search_products(query):
-        """商品搜索服务（带缓存和降级）"""
+        """商品搜索服务"""
         if not query:
             return []
 
@@ -151,7 +151,7 @@ class ProductService:
                 'stock': p.stock
             } for p in products]
 
-            # 缓存结果（即使之前缓存读取失败也尝试写入）
+            # 缓存结果
             try:
                 product_cache.set(cache_key, result, timeout=120)
             except Exception as e:
@@ -186,9 +186,6 @@ class ProductService:
                 # 如果库存变化或商品状态变化，更新缓存
                 if 'stock' in kwargs or 'is_active' in kwargs or old_stock != product.stock:
                     cache_product(product)
-                    # 使搜索缓存失效（实际生产中应异步执行）
-                    # from .tasks import async_invalidate_search_cache
-                    # async_invalidate_search_cache.delay()
 
                 return product
 
