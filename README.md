@@ -39,18 +39,21 @@ class Product(models.Model):
 并发控制机制：
 
 分布式锁实现（Redis）
-
 def acquire_lock(lock_name, timeout=10):
     return redis_client.set(lock_name, "locked", nx=True, ex=timeout)
+
+    
 悲观锁实现（select_for_update）
-
 product = Product.objects.select_for_update().get(id=product_id)
-乐观锁实现
 
+
+乐观锁实现
 updated = Product.objects.filter(
     id=product.id,
     version=current_version
 ).update(stock=new_stock, version=current_version+1)
+
+
 订单处理核心逻辑：
 
 实现批量订单处理流程
